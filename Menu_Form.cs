@@ -1,12 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Game
@@ -66,10 +59,10 @@ namespace Game
             if (Name_textbox.Text != "Guest" )
             {
                 //If statement to see if either of the login textboxes are empty
-                if (Name_textbox.Text != "" || Pass_textbox.Text != "")
+                if (Name_textbox.Text != "" && Pass_textbox.Text != "")
                 {
                     //Checking length, as only 4 character or longer names and passwords can be registered
-                    if (Name_textbox.Text.Length > 3 || Pass_textbox.Text.Length > 3)
+                    if (Name_textbox.Text.Length > 3 && Pass_textbox.Text.Length > 3)
                     {
                         //Query for given name and pass in Players database
                         string connectionString = "datasource=localhost;port=3306;username=root;password=;database=Players;";
@@ -101,9 +94,16 @@ namespace Game
                                         break;
                                     }
                                 }
-                            }else{MessageBox.Show("Database Empty!");}
+                            }
+                            else { MessageBox.Show("Database Empty!"); }
                             databaseConnection.Close();
-                        }catch (Exception ex) { MessageBox.Show("Something went wrong!\n\n" + ex.ToString()); } //Error catch
+                        }
+                        //Error catch
+                        catch (Exception ex)
+                        {
+                            if (ex.ToString().Contains("Unable to connect")) { MessageBox.Show("Could not connect to a database!"); return; }
+                            MessageBox.Show("Something went wrong!\n\n" + ex.ToString());
+                        }
                     }
                     
                     //Check if the database has the user and password combination
@@ -143,10 +143,10 @@ namespace Game
             if (Name_textbox.Text != "Guest") 
             {
                 //If statement to see if either of the login textboxes are empty
-                if (Name_textbox.Text != "" || Pass_textbox.Text != "")
+                if (Name_textbox.Text != "" && Pass_textbox.Text != "")
                 {
                     //Checking length, as only 4 character or longer names and passwords can be registered
-                    if (Name_textbox.Text.Length > 3 || Pass_textbox.Text.Length > 3)
+                    if (Name_textbox.Text.Length > 3 && Pass_textbox.Text.Length > 3)
                     {
                         
                         //Inserting new entry into Players database
@@ -163,12 +163,10 @@ namespace Game
                             MessageBox.Show("User has been registered!\nYou can Log in now!");
                         }
                         //Error catch
-                        catch (Exception ex){
-                            if (ex.ToString().Contains("0x80004005"))
-                            {
-                                MessageBox.Show("There is a user registered with that name!\nChoose another name!");
-                                return;
-                            }
+                        catch (Exception ex)
+                        {
+                            if (ex.ToString().Contains("Duplicate")) { MessageBox.Show("There is a user registered with that name!\nChoose another name!"); return; }
+                            if (ex.ToString().Contains("Unable to connect")) { MessageBox.Show("Could not connect to a database!"); return; }
                             MessageBox.Show("Something went wrong!\n\n" + ex.ToString());
                         }
                     }else{MessageBox.Show("The name or password must be more than 3 characters!");}
@@ -202,10 +200,16 @@ namespace Game
                             Scoreboard_richtextBox2.Text += row[1] + " pts\n";
                             i++;
                         }
-                    }else{MessageBox.Show("The database is empty!");}
+                    }
+                    else { MessageBox.Show("The database is empty!"); }
                     databaseConnection.Close();
                 }
-                catch (Exception ex){MessageBox.Show("Something went wrong!\n\n" + ex.ToString());} //Error catch
+                //Error catch
+                catch (Exception ex)
+                {
+                    if (ex.ToString().Contains("Unable to connect")) { MessageBox.Show("Could not connect to a database!"); return; }
+                    MessageBox.Show("Something went wrong!\n\n" + ex.ToString());
+                }
                 //After scores are written into the textboxes, we make the scoreboard visible
                 Score_Panel.Visible = true;
             }
@@ -225,12 +229,13 @@ namespace Game
         }
 
         //3 dimensional array to store which pictureboxes have what kind of symbol, 0 is empty, 1 is X, 2 is O
-        readonly int[,] fields = new int[3, 3] {{ 0, 0, 0 }, 
-                                                { 0, 0, 0 }, 
+        readonly int[,] fields = new int[3, 3] {{ 0, 0, 0 },
+                                                { 0, 0, 0 },
                                                 { 0, 0, 0 }};
 
         //Global variables for Tic Tac Toe
         int turn = 1; bool win = false;
+
         private void TicTacToe_Game(object sender)
         {
             //Store sender as variable and as a picture box, and save the corresponding values for it in the 3 dimensional array
@@ -240,14 +245,15 @@ namespace Game
             int pos_y = int.Parse(parts[1]) - 1, pos_x = int.Parse(parts[2]) - 1;
 
             //If the clicked picturebox is empty, and the game is not over, proceed
-            if(fields[pos_x,pos_y] == 0 && win == false) { 
+            if (fields[pos_x, pos_y] == 0 && win == false)
+            {
 
                 //Save player move in array and change corresponding picturebox to X symbol
                 fields[pos_x, pos_y] = 1;
                 field.ImageLocation = "Assets/X_symbol_white.png";
 
                 //If 3 turns passed, check win state for player
-                if(turn >= 3)
+                if (turn >= 3)
                 {
                     Check_win(1);
                 }
@@ -264,7 +270,7 @@ namespace Game
                     Control[] temp_arr = Tictactoe_panel.Controls.Find(name, true);
                     field = temp_arr[0] as PictureBox;
                     field.ImageLocation = "Assets/O_symbol_white.png";
-                    
+
                     //If 3 turns have passed and player has not won yet, check if AI has won
                     if (turn >= 3 && win == false)
                     {
@@ -281,36 +287,40 @@ namespace Game
         {
             //Test if either player has 3 of the same symbols in any direction
             //Test for the two diagonal cases
-            if (fields[0, 0] == player && fields[1, 1] == player && fields[2, 2] == player) { win = true;}
-            else if (fields[0, 2] == player && fields[1, 1] == player && fields[2, 0] == player) { win = true;}
+            if (fields[0, 0] == player && fields[1, 1] == player && fields[2, 2] == player) { win = true; }
+            else if (fields[0, 2] == player && fields[1, 1] == player && fields[2, 0] == player) { win = true; }
 
-            //For loop for the vertical and horizontal cases
-            for (int orient = 0; orient < 2; orient++)
+            //If there is a win for someone in the diagonals, do not seach the rows and lines
+            if (win != true)
             {
-
-                //2 for loops to get through the whole array in one or the other orientation
-                for (int i = 0; i < 3; i++)
+                //For loop for the vertical and horizontal cases
+                for (int orient = 0; orient < 2; orient++)
                 {
-                    int count = 0;
-                    for (int j = 0; j < 3; j++)
-                    {
-                        //Counts the number of same symbols in a row or line
-                        if (orient == 0)
-                        {
-                            if (fields[i, j] == player) { count++; }
-                        }
-                        else
-                        {
-                            if (fields[j, i] == player) { count++; }
-                        }
-                    }
 
-                    //If it finds 3 of the same in a row or line break out of the loop to stop the game
-                    if (count == 3) { win = true; break; }
+                    //2 for loops to get through the whole array in one or the other orientation
+                    for (int i = 0; i < 3; i++)
+                    {
+                        int count = 0;
+                        for (int j = 0; j < 3; j++)
+                        {
+                            //Counts the number of same symbols in a row or line
+                            if (orient == 0)
+                            {
+                                if (fields[i, j] == player) { count++; }
+                            }
+                            else
+                            {
+                                if (fields[j, i] == player) { count++; }
+                            }
+                        }
+
+                        //If it finds 3 of the same in a row or line break out of the loop to stop the game
+                        if (count == 3) { win = true; break; }
+                    }
+                    if (win == true) { break; }
                 }
-                if (win == true) { break; }
             }
-            
+
             //If either player won, show their win label
             if (win == true)
             {
@@ -327,65 +337,61 @@ namespace Game
             //Declare variables for search
             int[] location = { 0, 0 };
             bool found_loc = false;
-            int occupied_count; int empty_count;
+            int occupied_count, empty_count, player;
 
-            //For loop to search for 1 empty and 2 empty places besides each other
-            for (int round = 1; round < 3; round++)
+            //For loop to search for 1 empty places for the program, then 1 empty space for the player and lastly 2 empty places for the program
+            for (int round = 1; round < 4; round++)
             {
-                //For loop to search each player
-                for (int player = 2; player > 0; player--)
+                //Set the player value depending on the round
+                if (round == 2) { player = 1; }
+                else player = 2;
+
+                //For loop for the vertical and horizontal cases
+                for (int orient = 0; orient < 2; orient++)
                 {
-                    //Case to not do the 2 empty space check for the player
-                    if(round == 2 && player == 1) { break; }
-
-                    //For loop for the vertical and horizontal cases
-                    for (int orient = 0; orient < 2; orient++)
+                    //2 for loops to get through the whole array in one or the other orientation
+                    for (int i = 0; i < 4; i++)
                     {
-                        //2 for loops to get through the whole array in one or the other orientation
-                        for (int i = 0; i < 4; i++)
-                        {
-                            //Reset counters
-                            occupied_count = 0; empty_count = 0;
+                        //Reset counters
+                        occupied_count = 0; empty_count = 0;
 
-                            //If we have not checked every line or row, proceed as normal
-                            if (i < 3)
+                        //If we have not checked every line or row, proceed as normal
+                        if (i < 3)
+                        {
+                            for (int j = 0; j < 3; j++)
                             {
-                                for (int j = 0; j < 3; j++)
+                                //Counts the number of same symbols and empty spaces in a row or line, and saves one of the empty spaces location
+                                if (orient == 0)
                                 {
-                                    //Counts the number of same symbols and empty spaces in a row or line, and saves one of the empty spaces location
-                                    if (orient == 0)
-                                    {
-                                        if (fields[i, j] == player) { occupied_count++; }
-                                        else if (fields[i, j] == 0) { empty_count++; location[0] = i; location[1] = j; }
-                                    }
-                                    else
-                                    {
-                                        if (fields[j, i] == player) { occupied_count++; }
-                                        else if (fields[j, i] == 0) { empty_count++; location[0] = j; location[1] = i; }
-                                    }
+                                    if (fields[i, j] == player) { occupied_count++; }
+                                    else if (fields[i, j] == 0) { empty_count++; location[0] = i; location[1] = j; }
+                                }
+                                else
+                                {
+                                    if (fields[j, i] == player) { occupied_count++; }
+                                    else if (fields[j, i] == 0) { empty_count++; location[0] = j; location[1] = i; }
                                 }
                             }
-
-                            //If we have seen all the rows or lines, search the last case, the diagonals
-                            else
-                            {
-                                int[] temp = Diagonal_check(orient, player);
-                                occupied_count = temp[0]; empty_count = temp[1]; location[0] = temp[2]; location[1] = temp[3];
-                            }
-                            
-                            //Check if either player can win in the given row or line or diagonal
-                            if (occupied_count == 2 && empty_count == 1) { found_loc = true; break; }
-
-                            //Else in the second round, check if a suitable row or line or diagonal is optimal to try to win the game for the program
-                            else if (occupied_count == 1 && empty_count == 2 && player == 2 && round == 2) { found_loc = true; break; }
                         }
-                        if (found_loc == true) { break; }
+
+                        //If we have seen all the rows or lines, search the last case, the diagonals
+                        else
+                        {
+                            int[] temp = Diagonal_check(orient, player);
+                            occupied_count = temp[0]; empty_count = temp[1]; location[0] = temp[2]; location[1] = temp[3];
+                        }
+
+                        //Check if either player can win in the given row or line or diagonal
+                        if (occupied_count == 2 && empty_count == 1) { found_loc = true; break; }
+
+                        //Else in the second round, check if a suitable row or line or diagonal is optimal to try to win the game for the program
+                        else if (occupied_count == 1 && empty_count == 2 && round == 3) { found_loc = true; break; }
                     }
                     if (found_loc == true) { break; }
                 }
-                if(found_loc == true) { break; }
+                if (found_loc == true) { break; }
             }
-            
+
             //If all options have been exhausted, the program occupies a random empty space
             if (found_loc == false)
             {
@@ -415,7 +421,7 @@ namespace Game
                         if (fields[i, j] == player) { occupied_count++; }
                         else if (fields[i, j] == 0) { empty_count++; x = i; y = j; }
                     }
-                    else if(orient == 1 && i == j)
+                    else if (orient == 1 && i == j)
                     {
                         if (fields[i, j] == player) { occupied_count++; }
                         else if (fields[i, j] == 0) { empty_count++; x = i; y = j; }
@@ -426,8 +432,7 @@ namespace Game
             int[] temp = { occupied_count, empty_count, x, y };
             return temp;
         }
-
-        //Checks to see which Picturebox was pressed
+        //Checks to see which Picturebox was pressed, and send it's value to the game
         private void TTT_1_1_Click(object sender, EventArgs e) { TicTacToe_Game(sender); }
         private void TTT_1_2_Click(object sender, EventArgs e) { TicTacToe_Game(sender); }
         private void TTT_1_3_Click(object sender, EventArgs e) { TicTacToe_Game(sender); }
@@ -458,7 +463,7 @@ namespace Game
         private void Play_button_Click(object sender, EventArgs e)
         {
             //Closing Menu_Form and opening Game_Form
-            Menu_Form.ActiveForm.Visible = false;
+            ActiveForm.Visible = false;
             _ = new Game_Form { Visible = true };
         }
         private void Exit_button_Click(object sender, EventArgs e){Application.Exit(); }

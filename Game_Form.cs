@@ -1,22 +1,14 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Game
 {
     public partial class Game_Form : Form
     {
-        public Game_Form()
-        {
-            InitializeComponent();
-        }
+        public Game_Form(){InitializeComponent();}
         private void Game_Form_Load(object sender, EventArgs e) {
             DoubleBuffered = true;
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
@@ -57,9 +49,10 @@ namespace Game
                 if (charanim_time >= 15) { charanim_time = 0; Player_picturebox.ImageLocation = "Assets/Character_still.png"; }
                 else charanim_time++;
             }
+
             //Create graphics variable, clear the previous objects
-            Graphics gr = Enemy_picturebox.CreateGraphics();
-            gr.Clear(Color.LightSkyBlue);
+            BufferedGraphics gr = new BufferedGraphicsContext().Allocate(Enemy_picturebox.CreateGraphics(), DisplayRectangle);
+            gr.Graphics.Clear(Color.LightSkyBlue);
 
             //Collision test
             for (int i = 0; i < arrows.Count; i++)
@@ -105,7 +98,7 @@ namespace Game
             for (int i = 0; i < arrows.Count; i++)
             {
                 if (arrows[i].steps_taken < arrows[i].steps_total + 30 && arrows[i].hit != true) {
-                    gr.FillEllipse(new SolidBrush(Color.Black), arrows[i].arr_x_coord, arrows[i].arr_y_coord, 10, 10);
+                    gr.Graphics.FillEllipse(new SolidBrush(Color.Black), arrows[i].arr_x_coord, arrows[i].arr_y_coord, 10, 10);
                     arrows[i].arr_x_coord += arrows[i].arr_x_speed;
                     arrows[i].arr_y_coord += arrows[i].arr_y_speed;
                     arrows[i].steps_taken++;
@@ -124,14 +117,11 @@ namespace Game
             for (int i = 0; i < spawn; i++)
             {
                 if (enemies[i].reached_border != true && enemies[i].hit != true) {
+
                     //Switch for drawing the different types of enemies
-                    switch (enemies[i].type)
-                    {
-                        case 0: { gr.FillRectangle(new SolidBrush(enemies[i].color), enemies[i].x_coord, enemies[i].y_coord, 40, 40); break; }
-                        case 1: { gr.FillEllipse(new SolidBrush(enemies[i].color), enemies[i].x_coord, enemies[i].y_coord, 40, 40); break; }
-                        case 2: { gr.FillRectangle(new SolidBrush(enemies[i].color), enemies[i].x_coord, enemies[i].y_coord, 50, 50); break; }
-                        case 3: { gr.FillRectangle(new SolidBrush(enemies[i].color), enemies[i].x_coord, enemies[i].y_coord, 50, 40); break; }
-                    }
+                    if(enemies[i].type == 1){ gr.Graphics.FillEllipse(new SolidBrush(enemies[i].color), enemies[i].x_coord, enemies[i].y_coord, enemies[i].dim_x, enemies[i].dim_y); }
+                    else { gr.Graphics.FillRectangle(new SolidBrush(enemies[i].color), enemies[i].x_coord, enemies[i].y_coord, enemies[i].dim_x, enemies[i].dim_y); }
+
                     //If enemy reaches character, it disappears and damages player, otherwise continue moving
                     if(enemies[i].x_coord <= 0)
                     {
@@ -153,7 +143,7 @@ namespace Game
             if(health <= 0) 
             { 
                 Game_timer.Stop(); 
-                gr.Clear(Color.LightSkyBlue); 
+                gr.Graphics.Clear(Color.LightSkyBlue); 
                 gamestarted = false; 
                 Ready_button.Enabled = false; 
                 Resume_button.Enabled = false;
@@ -162,10 +152,13 @@ namespace Game
             if (finished_enemies == enemies.Count) 
             { 
                 Game_timer.Stop(); 
-                gr.Clear(Color.LightSkyBlue); 
+                gr.Graphics.Clear(Color.LightSkyBlue); 
                 gamestarted = false; 
             }
             else finished_enemies = 0;
+
+            //Render the buffer
+            gr.Render();
 
             //Less flicker
             System.Threading.Thread.Sleep(20);
@@ -193,10 +186,10 @@ namespace Game
                     int rand = r.Next(0, 4);
                     switch (rand)
                     {
-                        case 0: { enemies.Add(new Enemies(720, 5, 160, 1, 0, Color.Brown)); break; }
-                        case 1: { enemies.Add(new Enemies(720, 7, 60, 1, 1, Color.Red)); break; }
-                        case 2: { enemies.Add(new Enemies(720, 5, 150, 3, 2, Color.Blue)); break; }
-                        case 3: { enemies.Add(new Enemies(720, 10, 160, 1, 3, Color.Green)); break; }
+                        case 0: { enemies.Add(new Enemies(720, 5, 160, 1, 0, Color.Brown, 40, 40)); break; }
+                        case 1: { enemies.Add(new Enemies(720, 7, 60, 1, 1, Color.Red, 40, 40)); break; }
+                        case 2: { enemies.Add(new Enemies(720, 5, 150, 3, 2, Color.Blue, 50, 50)); break; }
+                        case 3: { enemies.Add(new Enemies(720, 10, 160, 1, 3, Color.Green, 50, 40)); break; }
                     }
                 }
 
@@ -256,7 +249,12 @@ namespace Game
                         CommandDatabase.ExecuteNonQuery();
                         databaseConnection.Close();
                     }
-                    catch(Exception ex){MessageBox.Show("Something went wrong!\n\n" + ex.ToString());} //Error catch
+                    //Error catch
+                    catch (Exception ex)
+                    {
+                        if (ex.ToString().Contains("Unable to connect")) { MessageBox.Show("Could not connect to a database!"); return; }
+                        MessageBox.Show("Something went wrong!\n\n" + ex.ToString());
+                    }
                 }
                 Game_Form.ActiveForm.Close();
             }

@@ -528,7 +528,6 @@ namespace Game
         private System.Windows.Forms.Button Scoreboard_button;
         private System.Windows.Forms.Button TicTacToe_button;
         private System.Windows.Forms.Button Exit_button;
-        private System.Windows.Forms.Panel Tictactoe_panel;
         private System.Windows.Forms.Panel Score_Panel;
         private System.Windows.Forms.PictureBox Guest_picturebox;
         private System.Windows.Forms.ToolTip Guest_tooltip;
@@ -536,20 +535,21 @@ namespace Game
         private System.Windows.Forms.RichTextBox Scoreboard_richtextBox;
         private System.Windows.Forms.RichTextBox Scoreboard_richtextBox2;
         private System.Windows.Forms.PictureBox Tictactoe_picturebox;
-        private System.Windows.Forms.PictureBox TTT_1_1;
-        private System.Windows.Forms.PictureBox TTT_2_2;
-        private System.Windows.Forms.PictureBox TTT_3_1;
-        private System.Windows.Forms.PictureBox TTT_3_2;
-        private System.Windows.Forms.PictureBox TTT_3_3;
-        private System.Windows.Forms.PictureBox TTT_2_3;
-        private System.Windows.Forms.PictureBox TTT_2_1;
-        private System.Windows.Forms.PictureBox TTT_1_3;
-        private System.Windows.Forms.PictureBox TTT_1_2;
         private System.Windows.Forms.Label Tic_tac_toe_label;
         private System.Windows.Forms.Button New_game_button;
-        private System.Windows.Forms.Label Program_win_label;
-        private System.Windows.Forms.Label Player_win_label;
-        private System.Windows.Forms.Label Draw_label;
+        public System.Windows.Forms.Panel Tictactoe_panel;
+        public System.Windows.Forms.Label Program_win_label;
+        public System.Windows.Forms.Label Player_win_label;
+        public System.Windows.Forms.Label Draw_label;
+        public System.Windows.Forms.PictureBox TTT_1_1;
+        public System.Windows.Forms.PictureBox TTT_2_2;
+        public System.Windows.Forms.PictureBox TTT_3_1;
+        public System.Windows.Forms.PictureBox TTT_3_2;
+        public System.Windows.Forms.PictureBox TTT_3_3;
+        public System.Windows.Forms.PictureBox TTT_2_3;
+        public System.Windows.Forms.PictureBox TTT_2_1;
+        public System.Windows.Forms.PictureBox TTT_1_3;
+        public System.Windows.Forms.PictureBox TTT_1_2;
     }
 }
 
